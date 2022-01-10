@@ -1,0 +1,8 @@
+/* Rofi config file */
+configuration {
+    font: "HackNerdFontMono 16";
+    show-icons: false;
+    display-drun: "Run";
+}
+/* @theme "base16-onedark" */
+@theme "squared-onedark"
