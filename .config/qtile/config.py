@@ -157,12 +157,10 @@ keys = [
     Key([], "XF86AudioPlay", lazy.spawn("playerctl -p spotify play-pause")),
 ]
 
-# Clamp groups to specified screen. qtile.warp_to_screen() gets called manually so the mouse cursor follows the focus even when a window is present.
-# One could set the global option "cursor_warp" to true, but Steam doesn't like that. Every menu press will set the cursor back to the center.
+# Clamp groups to specified screen.
 def go_to_group(qtile, group_name, screen):
     qtile.focus_screen(screen)
     qtile.groups_map[group_name].cmd_toscreen(toggle=False)
-    qtile.warp_to_screen()
 
 
 workspaces = [
@@ -183,19 +181,16 @@ for workspace in workspaces:
     matches = workspace["matches"] if "matches" in workspace else None
     screen = workspace["screen"] if "screen" in workspace else 0
     spawn = workspace["spawn"] if "spawn" in workspace else None
-    key = workspace["name"]
+    ws_name = workspace["name"]
     # screen_affinity sounds like specifying a screen but doesn't work
-    groups.append(
-        Group(workspace["name"], matches=matches, spawn=spawn, screen_affinity=screen)
-    )
-    keys.append(Key([mod], key, lazy.function(go_to_group, workspace["name"], screen)))
-    keys.append(Key([mod, "shift"], key, lazy.window.togroup(workspace["name"])))
+    groups.append(Group(ws_name, matches=matches, spawn=spawn, screen_affinity=screen))
+    keys.append(Key([mod], ws_name, lazy.function(go_to_group, ws_name, screen)))
+    # keys.append(Key([mod], ws_name, lazy.group[ws_name].toscreen()))
+    keys.append(Key([mod, "shift"], ws_name, lazy.window.togroup(ws_name)))
 
 
 layouts = [
-    layout.Max(
-        name=""
-    ),
+    layout.Max(name=""),
     layout.MonadTall(
         name="",
         margin=15,
@@ -299,7 +294,7 @@ auto_fullscreen = True
 focus_on_window_activation = "smart"
 wmname = "LG3D"
 
-
+# TODO: This gets ugly. There is probably a better way to do it.
 @hook.subscribe.client_new
 def new_client(new_window):
     current_group = qtile.current_group
@@ -307,8 +302,10 @@ def new_client(new_window):
         if (
             "firefox" in current_group.windows[0].get_wm_class()
             and "firefox" in new_window.get_wm_class()
-            and new_window.name != "Library"  # firefox Downloads/Bookmarks/History manager window
+            and new_window.name
+            != "Library"  # firefox Downloads/Bookmarks/History manager window
             and new_window.get_wm_role() != "Dialog"
+            and new_window.get_wm_role() != "GtkFileChooserDialog"
         ):
             new_window.togroup("0")
 
